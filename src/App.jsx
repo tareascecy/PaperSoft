@@ -2,10 +2,9 @@ import { useState, useEffect } from "react";
 
 function App() {
 
-  // 🔴 CAMBIA ESTA URL POR TU BACKEND EN RENDER
-  const API = "https://TU-BACKEND.onrender.com";
+  // ✅ BACKEND REAL EN RENDER
+  const API = "https://papersoft-backend.onrender.com";
 
-  // ESTADOS
   const [productos, setProductos] = useState([]);
 
   const [nuevoProducto, setNuevoProducto] = useState({
@@ -18,15 +17,22 @@ function App() {
   const [editando, setEditando] = useState(false);
   const [idEditar, setIdEditar] = useState(null);
 
+  // =========================
   // OBTENER PRODUCTOS
+  // =========================
   const obtenerProductos = async () => {
     try {
       const respuesta = await fetch(`${API}/productos`);
+
+      if (!respuesta.ok) {
+        throw new Error("Error en la API");
+      }
+
       const datos = await respuesta.json();
       setProductos(datos);
+
     } catch (error) {
-      console.log(error);
-      alert("Error al obtener productos");
+      console.log("Error al obtener productos:", error);
     }
   };
 
@@ -34,7 +40,9 @@ function App() {
     obtenerProductos();
   }, []);
 
-  // CAPTURAR INPUTS
+  // =========================
+  // INPUTS
+  // =========================
   const handleChange = (e) => {
     setNuevoProducto({
       ...nuevoProducto,
@@ -42,39 +50,34 @@ function App() {
     });
   };
 
+  // =========================
   // GUARDAR (AGREGAR / EDITAR)
+  // =========================
   const guardarProducto = async (e) => {
     e.preventDefault();
 
     try {
 
-      if (editando) {
+      const url = editando
+        ? `${API}/editar/${idEditar}`
+        : `${API}/agregar`;
 
-        const respuesta = await fetch(`${API}/editar/${idEditar}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(nuevoProducto)
-        });
+      const method = editando ? "PUT" : "POST";
 
-        const datos = await respuesta.json();
-        alert(datos.mensaje);
+      const respuesta = await fetch(url, {
+        method,
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(nuevoProducto)
+      });
 
-        setEditando(false);
-        setIdEditar(null);
+      const datos = await respuesta.json();
 
-      } else {
+      alert(datos.mensaje);
 
-        const respuesta = await fetch(`${API}/agregar`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(nuevoProducto)
-        });
-
-        const datos = await respuesta.json();
-        alert(datos.mensaje);
-      }
-
-      obtenerProductos();
+      setEditando(false);
+      setIdEditar(null);
 
       setNuevoProducto({
         nombre_producto: "",
@@ -83,13 +86,16 @@ function App() {
         categoria: ""
       });
 
+      obtenerProductos();
+
     } catch (error) {
-      console.log(error);
-      alert("Error al guardar producto");
+      console.log("Error al guardar:", error);
     }
   };
 
+  // =========================
   // ELIMINAR
+  // =========================
   const eliminarProducto = async (id) => {
 
     const confirmar = window.confirm("¿Desea eliminar este producto?");
@@ -106,12 +112,13 @@ function App() {
       obtenerProductos();
 
     } catch (error) {
-      console.log(error);
-      alert("Error al eliminar producto");
+      console.log("Error al eliminar:", error);
     }
   };
 
+  // =========================
   // EDITAR
+  // =========================
   const editarProducto = (producto) => {
     setNuevoProducto({
       nombre_producto: producto.nombre_producto,
@@ -124,23 +131,24 @@ function App() {
     setIdEditar(producto.id_producto);
   };
 
+  // =========================
+  // UI
+  // =========================
   return (
     <div className="bg-light min-vh-100">
 
-      {/* NAVBAR */}
       <nav className="navbar navbar-dark bg-dark">
         <div className="container">
           <span className="navbar-brand fw-bold">PaperSoft</span>
         </div>
       </nav>
 
-      {/* TITULO */}
       <div className="container text-center mt-4">
         <h1 className="text-primary">Sistema PaperSoft</h1>
         <p>Gestión de productos</p>
       </div>
 
-      {/* FORMULARIO */}
+      {/* FORM */}
       <div className="container mt-4">
         <div className="card p-3 shadow">
 
@@ -189,7 +197,7 @@ function App() {
         </div>
       </div>
 
-      {/* TABLA */}
+      {/* TABLE */}
       <div className="container mt-4">
 
         <table className="table table-striped">
@@ -214,13 +222,17 @@ function App() {
                 <td>{p.stock}</td>
                 <td>{p.categoria}</td>
                 <td>
-                  <button className="btn btn-warning btn-sm me-2"
-                    onClick={() => editarProducto(p)}>
+                  <button
+                    className="btn btn-warning btn-sm me-2"
+                    onClick={() => editarProducto(p)}
+                  >
                     Editar
                   </button>
 
-                  <button className="btn btn-danger btn-sm"
-                    onClick={() => eliminarProducto(p.id_producto)}>
+                  <button
+                    className="btn btn-danger btn-sm"
+                    onClick={() => eliminarProducto(p.id_producto)}
+                  >
                     Eliminar
                   </button>
                 </td>

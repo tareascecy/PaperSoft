@@ -5,11 +5,13 @@ const cors = require("cors");
 const app = express();
 
 // MIDDLEWARES
-app.use(cors());
+app.use(cors({
+  origin: "*"
+}));
 app.use(express.json());
 
 // ===============================
-// CONEXIÓN MYSQL (CLOUD / RENDER)
+// CONEXIÓN MYSQL (CLOUD)
 // ===============================
 const conexion = mysql.createConnection({
   host: process.env.DB_HOST,
@@ -19,12 +21,12 @@ const conexion = mysql.createConnection({
   port: 3306
 });
 
-// PROBAR CONEXIÓN
-console.log("Intentando conectar...");
-
+// ===============================
+// TEST CONEXIÓN
+// ===============================
 conexion.connect((error) => {
   if (error) {
-    console.log("❌ Error de conexión:", error);
+    console.log("❌ Error MySQL:", error);
   } else {
     console.log("✅ MySQL conectado");
   }
@@ -45,8 +47,8 @@ app.get("/productos", (req, res) => {
 
   conexion.query(sql, (error, resultados) => {
     if (error) {
-      console.log(error);
-      return res.status(500).json(error);
+      console.log("❌ Error productos:", error);
+      return res.status(500).json({ fatal: true, error });
     }
 
     res.json(resultados);
@@ -70,7 +72,7 @@ app.post("/agregar", (req, res) => {
     (error) => {
       if (error) {
         console.log(error);
-        return res.status(500).json(error);
+        return res.status(500).json({ mensaje: "Error al agregar" });
       }
 
       res.json({ mensaje: "Producto agregado" });
@@ -89,7 +91,7 @@ app.delete("/eliminar/:id", (req, res) => {
   conexion.query(sql, [id], (error) => {
     if (error) {
       console.log(error);
-      return res.status(500).json(error);
+      return res.status(500).json({ mensaje: "Error al eliminar" });
     }
 
     res.json({ mensaje: "Producto eliminado" });
@@ -115,7 +117,7 @@ app.put("/editar/:id", (req, res) => {
     (error) => {
       if (error) {
         console.log(error);
-        return res.status(500).json(error);
+        return res.status(500).json({ mensaje: "Error al actualizar" });
       }
 
       res.json({ mensaje: "Producto actualizado" });
