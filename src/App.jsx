@@ -2,11 +2,14 @@ import { useState, useEffect } from "react";
 
 function App() {
 
+  // URL BACKEND
+  const API = "http://localhost:3000";
+
   // ESTADOS
   const [productos, setProductos] = useState([]);
 
   const [nuevoProducto, setNuevoProducto] = useState({
-    nombre: "",
+    nombre_producto: "",
     precio: "",
     stock: "",
     categoria: ""
@@ -22,7 +25,7 @@ function App() {
     try {
 
       const respuesta = await fetch(
-        "https://papersoft.infinityfreeapp.com/api/obtener_productos.php"
+        `${API}/productos`
       );
 
       const datos = await respuesta.json();
@@ -61,29 +64,23 @@ function App() {
   };
 
   // AGREGAR Y EDITAR
-  const agregarProducto = async (e) => {
+  const guardarProducto = async (e) => {
 
     e.preventDefault();
 
     try {
 
-      const formData = new FormData();
-
-      formData.append("nombre", nuevoProducto.nombre);
-      formData.append("precio", nuevoProducto.precio);
-      formData.append("stock", nuevoProducto.stock);
-      formData.append("categoria", nuevoProducto.categoria);
-
       // EDITAR
       if (editando) {
 
-        formData.append("id", idEditar);
-
         const respuesta = await fetch(
-          "https://papersoft.infinityfreeapp.com/api/editar_producto.php",
+          `${API}/editar/${idEditar}`,
           {
-            method: "POST",
-            body: formData
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify(nuevoProducto)
           }
         );
 
@@ -99,10 +96,13 @@ function App() {
 
         // AGREGAR
         const respuesta = await fetch(
-          "https://papersoft.infinityfreeapp.com/api/agregar_producto.php",
+          `${API}/agregar`,
           {
             method: "POST",
-            body: formData
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify(nuevoProducto)
           }
         );
 
@@ -118,7 +118,7 @@ function App() {
       // LIMPIAR FORMULARIO
       setNuevoProducto({
 
-        nombre: "",
+        nombre_producto: "",
         precio: "",
         stock: "",
         categoria: ""
@@ -138,7 +138,6 @@ function App() {
   // ELIMINAR
   const eliminarProducto = async (id) => {
 
-    // CONFIRMAR
     const confirmar = window.confirm(
       "¿Desea eliminar este producto?"
     );
@@ -149,25 +148,17 @@ function App() {
 
     try {
 
-      const formData = new FormData();
-
-      formData.append("id", id);
-
       const respuesta = await fetch(
-        "https://papersoft.infinityfreeapp.com/api/eliminar_producto.php",
+        `${API}/eliminar/${id}`,
         {
-          method: "POST",
-          body: formData
+          method: "DELETE"
         }
       );
 
       const datos = await respuesta.json();
 
-      console.log(datos);
-
       alert(datos.mensaje);
 
-      // ACTUALIZAR TABLA
       obtenerProductos();
 
     } catch (error) {
@@ -185,7 +176,7 @@ function App() {
 
     setNuevoProducto({
 
-      nombre: producto.nombre_producto,
+      nombre_producto: producto.nombre_producto,
       precio: producto.precio,
       stock: producto.stock,
       categoria: producto.categoria
@@ -203,14 +194,11 @@ function App() {
     <div className="bg-light min-vh-100">
 
       {/* NAVBAR */}
-
       <nav className="navbar navbar-expand-lg navbar-dark bg-dark shadow">
 
         <div className="container">
 
           <a className="navbar-brand fw-bold" href="#">
-
-            <i className="bi bi-shop me-2"></i>
 
             PaperSoft
 
@@ -221,7 +209,6 @@ function App() {
       </nav>
 
       {/* TITULO */}
-
       <div className="container mt-5">
 
         <div className="text-center mb-5">
@@ -239,7 +226,6 @@ function App() {
       </div>
 
       {/* FORMULARIO */}
-
       <div className="container mt-5">
 
         <div className="card shadow border-0">
@@ -248,9 +234,9 @@ function App() {
 
             <h4 className="mb-0">
 
-              <i className="bi bi-pencil-square me-2"></i>
-
-              {editando ? "Editar Producto" : "Registrar Producto"}
+              {editando
+                ? "Editar Producto"
+                : "Registrar Producto"}
 
             </h4>
 
@@ -258,12 +244,11 @@ function App() {
 
           <div className="card-body">
 
-            <form onSubmit={agregarProducto}>
+            <form onSubmit={guardarProducto}>
 
               <div className="row g-3">
 
                 {/* NOMBRE */}
-
                 <div className="col-md-4">
 
                   <label className="form-label fw-bold">
@@ -274,8 +259,8 @@ function App() {
                     type="text"
                     className="form-control"
                     placeholder="Ingrese producto"
-                    name="nombre"
-                    value={nuevoProducto.nombre}
+                    name="nombre_producto"
+                    value={nuevoProducto.nombre_producto}
                     onChange={handleChange}
                     required
                   />
@@ -283,7 +268,6 @@ function App() {
                 </div>
 
                 {/* PRECIO */}
-
                 <div className="col-md-2">
 
                   <label className="form-label fw-bold">
@@ -303,7 +287,6 @@ function App() {
                 </div>
 
                 {/* STOCK */}
-
                 <div className="col-md-2">
 
                   <label className="form-label fw-bold">
@@ -323,7 +306,6 @@ function App() {
                 </div>
 
                 {/* CATEGORIA */}
-
                 <div className="col-md-2">
 
                   <label className="form-label fw-bold">
@@ -343,14 +325,13 @@ function App() {
                 </div>
 
                 {/* BOTON */}
-
                 <div className="col-md-2 d-flex align-items-end">
 
                   <button className="btn btn-success w-100 fw-bold">
 
-                    <i className="bi bi-floppy me-2"></i>
-
-                    {editando ? "Actualizar" : "Guardar"}
+                    {editando
+                      ? "Actualizar"
+                      : "Guardar"}
 
                   </button>
 
@@ -367,7 +348,6 @@ function App() {
       </div>
 
       {/* TABLA */}
-
       <div className="container mt-5 pb-5">
 
         <div className="card shadow border-0">
@@ -375,8 +355,6 @@ function App() {
           <div className="card-header bg-success text-white">
 
             <h4 className="mb-0">
-
-              <i className="bi bi-table me-2"></i>
 
               Productos Registrados
 
@@ -412,9 +390,7 @@ function App() {
 
                       <tr key={producto.id_producto}>
 
-                        <td>
-                          {producto.id_producto}
-                        </td>
+                        <td>{producto.id_producto}</td>
 
                         <td className="fw-bold">
                           {producto.nombre_producto}
@@ -424,9 +400,7 @@ function App() {
                           ${producto.precio}
                         </td>
 
-                        <td>
-                          {producto.stock}
-                        </td>
+                        <td>{producto.stock}</td>
 
                         <td>
 
@@ -442,10 +416,10 @@ function App() {
 
                           <button
                             className="btn btn-warning btn-sm me-2"
-                            onClick={() => editarProducto(producto)}
+                            onClick={() =>
+                              editarProducto(producto)
+                            }
                           >
-
-                            <i className="bi bi-pencil-square me-1"></i>
 
                             Editar
 
@@ -457,8 +431,6 @@ function App() {
                               eliminarProducto(producto.id_producto)
                             }
                           >
-
-                            <i className="bi bi-trash me-1"></i>
 
                             Eliminar
 
